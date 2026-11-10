@@ -1,0 +1,912 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<style>:root{color-scheme:light;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Membership Vote</title>
+<style>
+/* Layout: one working column, a six-step procedure bar on top, one task per step, Officers' controls folded at the foot */
+:root{
+  --bg:#ffffff; --fg:#1d1a1b; --muted:#6a6163; --tint:#f6f0f1; --line:#e2d6d8;
+  --accent:#7a1f2b; --on-accent:#ffffff; --accent-soft:#f3e1e3;
+  --serif:Georgia,"Times New Roman",Times,serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --s1:13px; --s2:15px; --s3:19px; --s4:26px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#171314; --fg:#f1eaeb; --muted:#ab9da0; --tint:#241d1f; --line:#3d3134;
+    --accent:#e39aa4; --on-accent:#1b0f11; --accent-soft:#3a2126; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#171314; --fg:#f1eaeb; --muted:#ab9da0; --tint:#241d1f; --line:#3d3134;
+  --accent:#e39aa4; --on-accent:#1b0f11; --accent-soft:#3a2126; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:var(--s2);line-height:1.5}
+.wrap{max-width:820px;margin:0 auto;padding-block:28px 64px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));
+  display:flex;flex-direction:column;gap:24px}
+h1,h2,h3{font-family:var(--serif);font-weight:700;margin:0;text-wrap:balance;line-height:1.2}
+h1{font-size:var(--s4)}
+h2{font-size:var(--s3)}
+h3{font-size:var(--s2);font-family:var(--sans)}
+p{margin:0;max-width:65ch}
+.muted{color:var(--muted)}
+.small{font-size:var(--s1)}
+.ref{font-size:var(--s1);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.num{font-variant-numeric:tabular-nums}
+header.top{display:flex;flex-direction:column;gap:14px}
+.status{display:flex;flex-wrap:wrap;gap:6px 22px;font-size:var(--s1);color:var(--muted)}
+.status b{color:var(--fg);font-variant-numeric:tabular-nums}
+.steps{display:flex;flex-wrap:wrap;gap:6px;list-style:none;margin:0;padding:0}
+.steps button{font:inherit;font-size:var(--s1);border:0;border-radius:4px;padding:7px 11px;background:var(--tint);color:var(--fg);cursor:pointer}
+.steps button[aria-current="step"]{background:var(--accent);color:var(--on-accent);font-weight:600}
+.stack{display:flex;flex-direction:column;gap:16px}
+.tight{display:flex;flex-direction:column;gap:8px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.row > .grow{flex:1 1 180px;min-width:0}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px}
+.cols > *{min-width:0}
+button.btn{font:inherit;border:0;border-radius:4px;padding:9px 14px;cursor:pointer;background:var(--tint);color:var(--fg)}
+button.btn.primary{background:var(--accent);color:var(--on-accent);font-weight:600}
+button.btn.quiet{background:none;color:var(--accent);padding:4px 6px;font-size:var(--s1)}
+button.btn:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input[type=text],input[type=number],select,textarea{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:8px 10px;min-width:0;max-width:100%}
+textarea{width:100%;resize:vertical}
+label{font-size:var(--s1);color:var(--muted);display:flex;flex-direction:column;gap:4px}
+ul.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+ul.list li{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:9px 0;border-top:1px solid var(--line)}
+ul.list li:first-child{border-top:0}
+ul.list .name{flex:1 1 160px;min-width:0;overflow-wrap:anywhere}
+.av{width:40px;height:40px;border-radius:50%;object-fit:cover;flex:none;background:var(--tint);display:inline-flex;align-items:center;justify-content:center;font-size:var(--s1);font-weight:600;color:var(--muted)}
+.av.sm{width:28px;height:28px;font-size:11px}
+.av.lg{width:132px;height:132px;font-size:var(--s4)}
+.crest{width:60px;height:56px;object-fit:contain;background:#fff;border-radius:4px;padding:3px;flex:none}
+.pill{font-size:var(--s1);border-radius:999px;padding:2px 10px;background:var(--tint);color:var(--muted);white-space:nowrap}
+.pill.in{background:var(--accent);color:var(--on-accent)}
+.pill.out{text-decoration:line-through}
+.note{background:var(--accent-soft);border-radius:4px;padding:12px 14px}
+.note p{max-width:none}
+.seg{display:inline-flex;border-radius:4px;overflow:hidden;background:var(--tint)}
+.seg button{font:inherit;font-size:var(--s1);border:0;background:none;color:var(--fg);padding:7px 12px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);font-weight:600}
+.members{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
+.members button{font:inherit;text-align:left;border:0;border-radius:4px;padding:10px 12px;background:var(--tint);color:var(--fg);cursor:pointer;display:flex;flex-direction:column;gap:2px;min-width:0;overflow-wrap:anywhere}
+.members button.done{background:var(--accent-soft)}
+.members span{font-size:var(--s1);color:var(--muted)}
+.ballot li{gap:10px}
+.stepper{display:inline-flex;align-items:center;gap:8px}
+.stepper button{font:inherit;font-size:var(--s3);line-height:1;width:38px;height:38px;border:0;border-radius:4px;background:var(--tint);color:var(--fg);cursor:pointer}
+.stepper button:disabled{opacity:.35;cursor:not-allowed}
+.stepper output{min-width:2ch;text-align:center;font-weight:600;font-variant-numeric:tabular-nums}
+.budget{font-family:var(--serif);font-size:var(--s4);font-variant-numeric:tabular-nums}
+.tally{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.tally li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 10px;align-items:center}
+.tally .bar{grid-column:2 / 4;height:8px;border-radius:2px;background:var(--tint);overflow:hidden}
+.tally .bar i{display:block;height:100%;background:var(--accent)}
+.tally .pts{font-weight:600;font-variant-numeric:tabular-nums}
+.tally .lead{grid-column:2 / 4;font-size:var(--s1);color:var(--muted)}
+.tally li.mark{display:block;font-size:var(--s1);color:var(--accent);font-weight:600;border-top:2px solid var(--accent);padding-top:6px}
+.code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:var(--s4);font-weight:600;letter-spacing:.06em}
+textarea.sealed{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:var(--s1);word-break:break-all}
+.clock{font-family:var(--serif);font-size:44px;line-height:1;font-variant-numeric:tabular-nums}
+ol.order{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+details.officers{border-top:1px solid var(--line);padding-top:16px}
+details.officers summary{cursor:pointer;font-weight:600}
+details.officers .stack{margin-top:12px}
+pre.record{white-space:pre-wrap;overflow-wrap:anywhere;background:var(--tint);border-radius:4px;padding:14px;margin:0;font-size:var(--s1);font-family:ui-monospace,Menlo,Consolas,monospace}
+@media (prefers-reduced-motion: no-preference){ .tally .bar i{transition:width .3s} }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="row" style="gap:14px">
+      <img class="crest" src="crest.png" alt="">
+      <div class="tight" style="gap:2px">
+        <span class="ref">The Rittenhouse Club</span>
+        <h1>Membership Vote</h1>
+      </div>
+    </div>
+    <div class="status" id="status"></div>
+    <ol class="steps" id="steps"></ol>
+  </header>
+  <main id="main" class="stack"></main>
+  <div id="officers"></div>
+</div>
+
+<script>
+(function(){
+'use strict';
+var KEY='membership-vote.v2';
+var STEPS=[['setup','1 Setup'],['letters','2 Letters'],['r1','3 Round one'],['r2','4 Round two'],['points','5 Points rounds'],['class','6 The class']];
+function uid(){return 'x'+Math.random().toString(36).slice(2,10);}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+
+/*CRYPTO-START*/
+var PUB={kty:'EC',crv:'P-256',x:'UjClYGavC6AEYPI6Tu1nPJIP7UF6xcu8ynUpUWnwb2w',y:'9Q3i-A3_gQSbJvvrd2YjCJa6s506rWGmG1CChPj9nb8'};
+var BAKED=[['brewer','John Brewer'],['brown','Chris Brown'],['fagerstal','SO1 Anders Fagerstal'],['frogley','TSGT Alexander Frogley'],['goldman','Jared Goldman'],['mccaleb','Captain Luke McCaleb'],['miller','Scott Miller']];
+var ALPHA='0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+var CR=(typeof crypto!=='undefined'&&crypto.subtle)?crypto:null;
+function b64u(u8){var s='';for(var i=0;i<u8.length;i++)s+=String.fromCharCode(u8[i]);return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
+function unb64u(s){s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var b=atob(s),u=new Uint8Array(b.length);for(var i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u;}
+function chk(b){return (b[0]*7+b[1]*13+b[2]*17+b[3]*19+91)&255;}
+function packCode(type,n,years,mask){
+  var b=[((type&3)<<6)|((n&15)<<2)|(years&3),(mask>>8)&255,mask&255,Math.floor(Math.random()*256)];b.push(chk(b));
+  var bits='';b.forEach(function(x){bits+=('00000000'+x.toString(2)).slice(-8);});
+  var out='';for(var i=0;i<40;i+=5)out+=ALPHA.charAt(parseInt(bits.substr(i,5),2));return out;
+}
+function parseCode(str){
+  var s=String(str||'').toUpperCase().replace(/O/g,'0').replace(/[IL]/g,'1').replace(/[^0-9A-Z]/g,'');
+  if(s.length!==8)return null;var bits='';
+  for(var i=0;i<8;i++){var k=ALPHA.indexOf(s.charAt(i));if(k<0)return null;bits+=('00000'+k.toString(2)).slice(-5);}
+  var b=[];for(var j=0;j<40;j+=8)b.push(parseInt(bits.substr(j,8),2));
+  if(chk(b)!==b[4])return null;
+  var idx=[],mask=(b[1]<<8)|b[2];for(var q=0;q<16;q++){if(mask&(1<<q)){if(q>=BAKED.length)return null;idx.push(q);}}
+  if(!idx.length)return null;
+  return {code:s,type:b[0]>>6,n:(b[0]>>2)&15,years:b[0]&3,idx:idx};
+}
+function showCode(c){return c?c.slice(0,4)+'-'+c.slice(4):'';}
+async function sealText(plain){
+  var alg={name:'ECDH',namedCurve:'P-256'};
+  var pub=await CR.subtle.importKey('jwk',PUB,alg,false,[]);
+  var eph=await CR.subtle.generateKey(alg,true,['deriveKey']);
+  var key=await CR.subtle.deriveKey({name:'ECDH',public:pub},eph.privateKey,{name:'AES-GCM',length:256},false,['encrypt']);
+  var iv=CR.getRandomValues(new Uint8Array(12));
+  var ct=new Uint8Array(await CR.subtle.encrypt({name:'AES-GCM',iv:iv},key,new TextEncoder().encode(plain)));
+  var raw=new Uint8Array(await CR.subtle.exportKey('raw',eph.publicKey));
+  var all=new Uint8Array(raw.length+12+ct.length);all.set(raw,0);all.set(iv,raw.length);all.set(ct,raw.length+12);
+  return 'TRC1.'+b64u(all);
+}
+async function openText(code,d){
+  var alg={name:'ECDH',namedCurve:'P-256'};
+  var priv=await CR.subtle.importKey('jwk',{kty:'EC',crv:'P-256',x:PUB.x,y:PUB.y,d:d},alg,false,['deriveKey']);
+  var all=unb64u(String(code).replace(/^TRC1\./,''));
+  var pub=await CR.subtle.importKey('raw',all.slice(0,65),alg,false,[]);
+  var key=await CR.subtle.deriveKey({name:'ECDH',public:pub},priv,{name:'AES-GCM',length:256},false,['decrypt']);
+  var pt=await CR.subtle.decrypt({name:'AES-GCM',iv:all.slice(65,77)},key,all.slice(77));
+  return new TextDecoder().decode(pt);
+}
+async function signText(text,d){
+  var k=await CR.subtle.importKey('jwk',{kty:'EC',crv:'P-256',x:PUB.x,y:PUB.y,d:d},{name:'ECDSA',namedCurve:'P-256'},false,['sign']);
+  return b64u(new Uint8Array(await CR.subtle.sign({name:'ECDSA',hash:'SHA-256'},k,new TextEncoder().encode(text))));
+}
+async function verifyText(text,sig){
+  var k=await CR.subtle.importKey('jwk',PUB,{name:'ECDSA',namedCurve:'P-256'},false,['verify']);
+  return CR.subtle.verify({name:'ECDSA',hash:'SHA-256'},k,unb64u(sig),new TextEncoder().encode(text));
+}
+/*CRYPTO-END*/
+var RELAY='https://ntfy.sh/',TOPIC='trc-vote-d6dfc9cb4a1d32d490cb';
+var relay={es:null,ok:false,live:null,liveT:0,chain:Promise.resolve()};
+function relayPost(body){return fetch(RELAY+TOPIC,{method:'POST',body:body}).then(function(r){if(!r.ok)throw new Error('relay');});}
+function relayStart(){
+  if(relay.es||typeof EventSource==='undefined')return;
+  try{relay.es=new EventSource(RELAY+TOPIC+'/sse?since=all');}catch(e){return;}
+  relay.es.onopen=function(){relay.ok=true;relayChanged();};
+  relay.es.onerror=function(){relay.ok=false;relayChanged();};
+  relay.es.onmessage=function(e){var m;try{m=JSON.parse(e.data).message;}catch(x){return;}onRelay(String(m||''));};
+}
+function relayChanged(){
+  if(ui.mode==='voter'&&vui.nameSet&&!vui.pc&&!vui.manualOpen)render();
+  var el=document.getElementById('relayState');if(el)el.textContent=relay.ok?'Live connection on.':'Live connection off.';
+}
+function onRelay(msg){
+  var m=/^TRCS\.([0-9A-Z]{4,8})~(\d+)\.([A-Za-z0-9_-]+)$/.exec(msg);
+  if(m){
+    var t=+m[2];if(!CR||t<=relay.liveT)return;
+    verifyText(m[1]+'~'+m[2],m[3]).then(function(ok){if(!ok||t<=relay.liveT)return;relay.liveT=t;relay.live=m[1]==='NONE'?null:m[1];voterSync();},function(){});
+    return;
+  }
+  if(officerKey&&msg.indexOf('TRC1.')>=0){relay.chain=relay.chain.then(function(){return runIntake(null,msg,true);}).catch(function(){});}
+}
+function voterSync(){
+  if(vui.manual)return;
+  var live=relay.live,before=vui.pc?vui.pc.code:null;
+  if(!live){vui.pc=null;}
+  else if(before!==live){var pc=parseCode(live);if(pc)vui.pc=pc;}
+  if((vui.pc?vui.pc.code:null)!==before){vui.draft={};vui.sealed=null;vui.sent=!!(vui.pc&&vui.sentFor===vui.pc.code);}
+  if(ui.mode==='voter'&&vui.nameSet)render();
+}
+function liveCode(){
+  var r=openRound();if(r&&!r.closed)return r.code;
+  var a=state.sup.r2,b=state.sup.r1;if(a&&!a.closed)return a.code;if(b&&!b.closed)return b.code;return 'NONE';
+}
+function openPolls(){var out=[],r=openRound();if(r&&!r.closed)out.push(r);['r2','r1'].forEach(function(k){var p=state.sup[k];if(p&&!p.closed)out.push(p);});return out;}
+function announce(){
+  if(!officerKey||!CR)return;var c=liveCode();
+  if(state.posted===c)return;
+  if(c==='NONE'&&!state.posted){state.posted=c;return;}
+  state.posted=c;var payload=c+'~'+Date.now();
+  signText(payload,officerKey).then(function(sig){return relayPost('TRCS.'+payload+'.'+sig);}).catch(function(){state.posted='?';save();});
+}
+
+
+function example(){
+  var m=['Teagan Atwood','Olsi Bandula','Alex Bilay','Jordan Harris','Joe Nomellini','Tyler Patterson','Chris Rothe','Daniel Shlayen','JD Smeallie','Dan Swensen']
+    .map(function(n){return {id:uid(),name:n,year:2};});
+  var c=[['John Brewer','brewer','Tyler Patterson','Jordan Harris'],
+         ['Chris Brown','brown','Teagan Atwood','Tyler Patterson and Olsi Bandula'],
+         ['SO1 Anders Fagerstal','fagerstal','SO2 Joe Nomellini','SO2 Alex Bilay'],
+         ['TSGT Alexander Frogley','frogley','SSG Chris Rothe','SO2 Alex Bilay and Master Sergeant Dan Swensen'],
+         ['Jared Goldman','goldman','Daniel Shlayen','JD Smeallie and Tyler Patterson'],
+         ['Captain Luke McCaleb','mccaleb','JD Smeallie','Staff Sergeant Chris Rothe, Teagan Atwood and Matt Friday (TRC 2025)'],
+         ['Scott Miller','miller','SO2 Alex Bilay','']]
+    .map(function(x){return {id:uid(),name:x[0],photo:x[1],proposer:x[2],second:x[3],status:'pending',via:null,heard:false};});
+  return {example:true,classSize:4,limitMin:5,members:m,candidates:c,r1:{},r2:{},sup:{},rounds:[],step:'setup'};
+}
+function blank(){return {example:false,classSize:4,limitMin:5,members:[],candidates:[],r1:{},r2:{},sup:{},rounds:[],step:'setup'};}
+
+var state=null;
+try{var raw=localStorage.getItem(KEY); if(raw){state=JSON.parse(raw);}}catch(e){}
+if(!state||!state.members||!state.candidates){state=example();}
+var officerKey=null,VKEY='membership-vote.voter',OKEY='membership-vote.officer';
+try{officerKey=localStorage.getItem(OKEY)||null;}catch(e){}
+var ui={setupText:null,setupCopied:false,setupErr:null,mode:(officerKey||!CR)?'console':'voter',confirm:null,ballotMember:null,draft:{},recorded:false,sel:[],lettersCand:null,recordText:null,copied:false,officersOpen:false,intakeMsg:null,unlockErr:null};
+var vui={name:'',nameSet:false,code:'',year:2,pc:null,draft:{},sealed:null,sent:false,sentFor:null,manual:false,manualOpen:false,err:null,copied:false};
+try{var vr=JSON.parse(localStorage.getItem(VKEY)||'null');if(vr){vui.name=vr.name||'';vui.nameSet=!!vui.name;vui.year=vr.year===1?1:2;vui.sentFor=vr.sentFor||null;}}catch(e){}
+function migrate(){
+  if(!state.sup)state.sup={};
+  state.rounds.forEach(function(r){
+    r.type='points';if(!r.codes)r.codes=[];if(!r.pend)r.pend=[];if(!r.ts)r.ts={};if(!r.ballots)r.ballots={};
+    if(!r.closed&&!r.code)newCode(r);
+  });
+}
+migrate();
+var timer={left:state.limitMin*60,running:false,handle:null};
+
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+function cand(id){for(var i=0;i<state.candidates.length;i++){if(state.candidates[i].id===id)return state.candidates[i];}return null;}
+function member(id){for(var i=0;i<state.members.length;i++){if(state.members[i].id===id)return state.members[i];}return null;}
+function av(c,cls){
+  if(c&&c.photo)return '<img class="av '+(cls||'')+'" src="'+c.photo+'.jpg" alt="">';
+  var ini=String(c?c.name:'').split(/\s+/).filter(function(w){return /^[A-Za-z]/.test(w);}).map(function(w){return w.charAt(0);}).slice(-2).join('').toUpperCase();
+  return '<span class="av '+(cls||'')+'" aria-hidden="true">'+esc(ini)+'</span>';
+}
+function by(status){return state.candidates.filter(function(c){return c.status===status;});}
+function seats(){return state.classSize-by('accepted').length;}
+function budget(m){return m.year===1?15:10;}
+function cap(m){return Math.floor(budget(m)/2);}
+function lastRound(){return state.rounds[state.rounds.length-1]||null;}
+function openRound(){var r=lastRound();return r&&!r.decided?r:null;}
+function viaLabel(v){
+  if(v==='r1')return 'Round one, unanimous Membership';
+  if(v==='r2')return 'Round two, unanimous first-year Members';
+  if(v&&v.charAt(0)==='p')return 'Points round '+v.slice(1);
+  return '';
+}
+function normName(s){return String(s||'').toLowerCase().replace(/[^a-z]+/g,' ').trim();}
+function matchMember(name,pool){
+  var n=normName(name);if(!n)return null;
+  var ex=pool.filter(function(m){return normName(m.name)===n;});if(ex.length===1)return ex[0];
+  var tk=n.split(' ');
+  var part=pool.filter(function(m){var mt=normName(m.name).split(' ');return tk.every(function(t){return mt.indexOf(t)>=0;})||mt.every(function(t){return tk.indexOf(t)>=0;});});
+  return part.length===1?part[0]:null;
+}
+function yearsFlag(){var f=state.members.some(function(m){return m.year===1;}),s=state.members.some(function(m){return m.year!==1;});return f&&s?2:(f?1:0);}
+function maskOf(ids){var m=0;ids.forEach(function(id){var c=cand(id);if(!c||!c.photo)return;for(var i=0;i<BAKED.length;i++){if(BAKED[i][0]===c.photo)m|=(1<<i);}});return m;}
+function newCode(p){var t=p.type==='points'?2:(p.type==='r2'?1:0);p.code=packCode(t,Math.min(15,p.n||0),yearsFlag(),maskOf(p.candIds));p.codes=(p.codes||[]).concat([p.code]);}
+function localOnly(p){return p.candIds.map(cand).filter(function(c){return c&&!c.photo;});}
+function votersOf(p){return p.type==='r2'?state.members.filter(function(m){return m.year===1;}):state.members;}
+function ballotCount(r){return r.count!=null&&r.closed?r.count:Object.keys(r.ballots).length;}
+function activePoll(){
+  if(state.step==='points'){var r=openRound();return r&&!r.closed?r:null;}
+  if(state.step==='r1'||state.step==='r2'){var p=state.sup[state.step];return p&&!p.closed?p:null;}
+  return null;
+}
+function checkVotes(p,map,m){
+  var ids=Object.keys(map),i,v;
+  if(p.type!=='points'){for(i=0;i<ids.length;i++){if(map[ids[i]]!==0&&map[ids[i]]!==1)return false;}return true;}
+  var b=m?budget(m):15,cp=m?cap(m):7,sum=0;
+  for(i=0;i<ids.length;i++){v=map[ids[i]];if(!(Number.isInteger(v)&&v>=0&&v<=cp))return false;sum+=v;}
+  return sum<=b;
+}
+async function runIntake(p0,text,quiet){
+  var found=String(text||'').match(/TRC1\.[A-Za-z0-9_-]{100,}/g)||[],seen={},res={ok:0,replaced:0,other:0,bad:0,pend:0,stale:0};
+  for(var f=0;f<found.length;f++){
+    var code=found[f];if(seen[code])continue;seen[code]=1;
+    var o=null;try{o=JSON.parse(await openText(code,officerKey));}catch(e){res.bad++;continue;}
+    var p=p0||openPolls().filter(function(x){return o&&x.codes.indexOf(o.r)>=0;})[0];
+    if(!o||!p||p.codes.indexOf(o.r)<0){res.other++;continue;}
+    var pc=parseCode(o.r);if(!pc||!Array.isArray(o.v)||o.v.length!==pc.idx.length){res.bad++;continue;}
+    var map={};
+    pc.idx.forEach(function(bi,k){var key=BAKED[bi][0];var c=state.candidates.filter(function(x){return x.photo===key;})[0];if(c&&p.candIds.indexOf(c.id)>=0)map[c.id]=o.v[k];});
+    var m=matchMember(o.n,state.members),t=+o.t||0;
+    if(m&&p.type==='r2'&&m.year!==1){res.bad++;continue;}
+    if(!checkVotes(p,map,m)){res.bad++;continue;}
+    if(m){
+      if(p.ballots[m.id]&&p.ts[m.id]&&p.ts[m.id]>=t){res.stale++;continue;}
+      if(p.ballots[m.id])res.replaced++;else res.ok++;
+      p.ballots[m.id]=map;p.ts[m.id]=t;
+    }else{
+      var nn=normName(o.n);p.pend=p.pend.filter(function(x){return normName(x.name)!==nn;});
+      p.pend.push({id:uid(),name:String(o.n||'').slice(0,60),map:map,t:t});res.pend++;
+    }
+  }
+  if(quiet){if(res.ok||res.replaced||res.pend){if(res.pend)ui.intakeMsg='A ballot arrived that could not be matched to a Member by name. Assign it below.';save();if(ui.mode==='console'&&!ui.ballotMember)render();}return;}
+  var parts=[];
+  if(!found.length)parts.push('No sealed ballots found in that text.');
+  if(res.ok)parts.push(plural(res.ok,'ballot','ballots')+' counted.');
+  if(res.replaced)parts.push(plural(res.replaced,'ballot','ballots')+' replaced an earlier one.');
+  if(res.stale)parts.push(res.stale+' already counted.');
+  if(res.pend)parts.push(res.pend+' could not be matched to a Member by name. Assign below.');
+  if(res.other)parts.push(res.other+' from a different round ignored.');
+  if(res.bad)parts.push(res.bad+' not valid and ignored.');
+  ui.intakeMsg=parts.join(' ');commit();
+}
+function intakeHtml(p){
+  if(!officerKey)return '';
+  var h='<div class="tight"><p>This ballot is now showing on Members\' phones, and their ballots arrive here by themselves. <span id="relayState">'+(relay.ok?'Live connection on.':'Live connection off.')+'</span></p>'+
+    '<p class="muted small">If a phone cannot connect, the Member can enter round code <b>'+showCode(p.code)+'</b> by hand and send the sealed code, to be pasted below.</p></div>';
+  var lo=localOnly(p);
+  if(lo.length){h+='<div class="note"><p>'+lo.map(function(c){return esc(c.name);}).join(', ')+' was added on this device only and will not appear on Members\' phones.</p></div>';}
+  h+='<div class="tight"><label>Sealed codes received by message, if any<textarea id="intake" rows="2"></textarea></label>'+
+    '<div class="row"><button class="btn" data-act="intake">Count pasted codes</button>'+(ui.intakeMsg?'<span class="small">'+esc(ui.intakeMsg)+'</span>':'')+'</div></div>';
+  if(p.pend.length){
+    var opts=votersOf(p).map(function(m){return '<option value="'+m.id+'">'+esc(m.name)+(p.ballots[m.id]?' (replaces ballot)':'')+'</option>';}).join('');
+    h+='<div class="tight"><h3>Sealed ballots without a matching Member</h3><ul class="list">'+p.pend.map(function(x){
+      return '<li><span class="name">Signed as '+esc(x.name||'no name')+'</span><select id="assign-'+x.id+'" aria-label="Member">'+opts+'</select>'+
+        '<button class="btn" data-act="assign" data-id="'+x.id+'">Assign</button><button class="btn quiet" data-act="dropPend" data-id="'+x.id+'">Discard</button></li>';
+    }).join('')+'</ul></div>';
+  }
+  return h;
+}
+function setUnan(round,id,v){
+  var c=cand(id);if(!c)return;state[round][id]=v;
+  if(v==='yes'){c.status='accepted';c.via=round;}
+  else if(c.status==='accepted'&&c.via===round){c.status='pending';c.via=null;}
+}
+function totals(r){
+  var t={};r.candIds.forEach(function(id){t[id]=0;});
+  if(r.totals){r.candIds.forEach(function(id){t[id]=r.totals[id]||0;});}
+  else Object.keys(r.ballots).forEach(function(mid){var b=r.ballots[mid];Object.keys(b).forEach(function(cid){if(cid in t)t[cid]+=b[cid];});});
+  return r.candIds.map(function(id){return {id:id,pts:t[id]};}).sort(function(a,b){return b.pts-a.pts;});
+}
+function plural(n,one,many){return n+' '+(n===1?one:many);}
+
+/* ---------- header ---------- */
+function renderHeader(){
+  var s=seats(),acc=by('accepted').length;
+  var seatText=s>=0?'<b>'+s+'</b> '+(s===1?'seat':'seats')+' open':'<b>'+(-s)+'</b> over the class size';
+  document.getElementById('status').innerHTML=
+    '<span>Class of <b>'+state.classSize+'</b></span><span><b>'+acc+'</b> accepted</span><span><b>'+by('pending').length+'</b> in consideration</span><span>'+seatText+'</span><span><b>'+state.members.length+'</b> '+(state.members.length===1?'Member':'Members')+' voting</span>';
+  document.getElementById('steps').innerHTML=STEPS.map(function(x){
+    return '<li><button data-act="go" data-id="'+x[0]+'"'+(state.step===x[0]?' aria-current="step"':'')+'>'+x[1]+'</button></li>';
+  }).join('');
+}
+
+/* ---------- setup ---------- */
+function memberList(year){
+  var ms=state.members.filter(function(m){return m.year===year;});
+  if(!ms.length)return '<p class="muted small">None added yet.</p>';
+  return '<ul class="list">'+ms.map(function(m){
+    return '<li><span class="name">'+esc(m.name)+'</span><button class="btn quiet" data-act="rmMember" data-id="'+m.id+'">Remove</button></li>';
+  }).join('')+'</ul>';
+}
+function renderSetup(){
+  var h='';
+  if(state.example){
+    h+='<div class="note row"><p class="grow">The seven Candidates, their photos, Proposers and Seconds come from the letters. The Members listed are only those named in the letters, all entered as second year. Before the vote, confirm each Member\'s year, add the rest of the Membership, and set the class size.</p><button class="btn primary" data-act="dismissNote">Done</button></div>';
+  }
+  h+='<section class="tight"><h2>Class size</h2><p class="muted">Voting repeats until this many Candidates are accepted.</p>'+
+     '<div><input type="number" id="classSize" min="1" max="99" value="'+state.classSize+'" style="width:90px" aria-label="Class size"></div></section>';
+  h+='<section class="stack"><h2>Members</h2><div class="cols">'+
+     '<div class="tight"><h3>First year, 15 points each</h3>'+memberList(1)+'</div>'+
+     '<div class="tight"><h3>Second year, 10 points each</h3>'+memberList(2)+'</div></div>'+
+     '<div class="row"><label class="grow">Names, one per line<textarea id="newMembers" rows="2"></textarea></label>'+
+     '<label>Year<select id="newYear"><option value="1">First year</option><option value="2">Second year</option></select></label>'+
+     '<button class="btn" data-act="addMembers" style="align-self:flex-end">Add Members</button></div></section>';
+  h+='<section class="stack"><h2>Candidates</h2>';
+  if(state.candidates.length){
+    h+='<ul class="list">'+state.candidates.map(function(c){
+      var who=[];if(c.proposer)who.push('Proposed by '+esc(c.proposer));if(c.second)who.push('seconded by '+esc(c.second));
+      return '<li>'+av(c)+'<span class="name">'+esc(c.name)+(who.length?'<br><span class="muted small">'+who.join(', ')+'</span>':'')+'</span>'+
+        '<button class="btn quiet" data-act="rmCandidate" data-id="'+c.id+'">Remove</button></li>';
+    }).join('')+'</ul>';
+  }else{h+='<p class="muted small">None added yet.</p>';}
+  h+='<div class="row"><label class="grow">Candidate<input type="text" id="newCand"></label>'+
+     '<label class="grow">Proposer<input type="text" id="newProposer"></label>'+
+     '<label class="grow">Second<input type="text" id="newSecond"></label>'+
+     '<button class="btn" data-act="addCandidate" style="align-self:flex-end">Add Candidate</button></div></section>';
+  h+='<section class="tight"><h2>Voting on Members\' own phones</h2><p class="muted">Share this page\'s link with the Members. Each enters their name once. When a vote opens here, the ballot appears on their phone and their sealed ballot comes back to this console by itself. Only totals are shown, and individual ballots are erased when a vote closes.</p></section>';
+  h+='<section class="tight"><h2>Move this setup to another device</h2><div class="row"><button class="btn" data-act="exportSetup">Copy this setup</button>'+(ui.setupCopied?'<span class="small">Copied.</span>':'')+'</div>'+
+     (ui.setupText?'<textarea class="sealed" rows="3" readonly id="setupOut">'+esc(ui.setupText)+'</textarea>':'')+
+     '<div class="row"><label class="grow">Setup copied from another device<textarea id="setupIn" rows="2"></textarea></label><button class="btn" data-act="importSetup" style="align-self:flex-end">Load it here</button></div>'+
+     (ui.setupErr?'<p class="small">'+esc(ui.setupErr)+'</p>':'')+'</section>';
+  h+='<div class="row"><button class="btn primary" data-act="go" data-id="letters">Begin with the letters</button>';
+  if(ui.confirm==='reset'){
+    h+='<span class="small">Erase everything, including ballots?</span><button class="btn" data-act="doReset">Erase</button><button class="btn quiet" data-act="cancel">Keep</button>';
+  }else{h+='<button class="btn quiet" data-act="ask" data-id="reset">Start over with an empty roster</button>';}
+  h+='</div>';
+  return h;
+}
+
+/* ---------- letters ---------- */
+function clockText(){var s=Math.max(0,timer.left);var m=Math.floor(s/60),r=s%60;return m+':'+(r<10?'0':'')+r;}
+function renderLetters(){
+  var list=state.candidates.filter(function(c){return c.status!=='void';});
+  if(!list.length)return '<p>No Candidates to hear. Add them in Setup.</p>';
+  var cur=cand(ui.lettersCand);
+  if(!cur||cur.status==='void'){cur=list.filter(function(c){return !c.heard;})[0]||list[0];ui.lettersCand=cur.id;}
+  var h='<section class="tight"><span class="ref">Sec. 4, Subsection 1</span><h2>Reading of the letters</h2></section>';
+  h+='<div class="cols"><div class="tight"><h3>Order of Candidates</h3><ul class="list">'+list.map(function(c){
+     return '<li>'+av(c,'sm')+'<button class="btn quiet" data-act="pickLetter" data-id="'+c.id+'" style="flex:1;text-align:left;font-size:inherit;'+(c.id===cur.id?'font-weight:700':'')+'">'+esc(c.name)+'</button>'+
+      (c.heard?'<span class="pill">Heard</span>':'')+'</li>';
+  }).join('')+'</ul></div>';
+  h+='<div class="stack"><div class="tight"><h3>Now hearing</h3>'+av(cur,'lg')+'<p style="font-family:var(--serif);font-size:var(--s4);line-height:1.2">'+esc(cur.name)+'</p></div>'+
+    '<ol class="order"><li>'+(cur.proposer?esc(cur.proposer):'The Proposer')+' reads the letter aloud and may add a few remarks.</li>'+
+    '<li>The Second has the first opportunity to speak if anything remains to be said.'+(cur.second?' Seconded by '+esc(cur.second)+'.':'')+'</li>'+
+    '<li>The floor opens to the Members for discussion.</li></ol>'+
+    '<div class="tight"><h3>Discussion time limit</h3><div class="clock" id="clock">'+clockText()+'</div>'+
+    '<div class="row"><label>Minutes<input type="number" id="limitMin" min="1" max="60" value="'+state.limitMin+'" style="width:80px"></label>'+
+    '<button class="btn" data-act="timerToggle" style="align-self:flex-end">'+(timer.running?'Pause':'Start')+'</button>'+
+    '<button class="btn quiet" data-act="timerReset" style="align-self:flex-end">Reset</button></div>'+
+    '<p class="muted small">The Officers may set a limit if needed. The clock is optional.</p></div>'+
+    '<div class="row"><button class="btn primary" data-act="heard" data-id="'+cur.id+'">'+(cur.heard?'Heard. Go to the next Candidate':'Mark as heard and go to the next')+'</button></div></div></div>';
+  var left=list.filter(function(c){return !c.heard;}).length;
+  h+='<div class="row"><button class="btn'+(left?'':' primary')+'" data-act="go" data-id="r1">Go to round one</button><span class="muted small">'+(left?plural(left,'Candidate','Candidates')+' still to be heard.':'Every Candidate has been heard.')+'</span></div>';
+  return h;
+}
+
+/* ---------- unanimity rounds ---------- */
+function renderUnan(round){
+  var isR1=round==='r1';
+  var list=state.candidates.filter(function(c){return c.status==='pending'||(c.status==='accepted'&&c.via===round);});
+  var fy=state.members.filter(function(m){return m.year===1;}).length;
+  if(!isR1&&!fy){
+    return '<section class="tight"><span class="ref">Sec. 4, Subsection 2</span><h2>Round two: Members in their first year</h2>'+
+      '<p>No first-year Members are voting, so this round does not apply. The remaining Candidates go straight to the points rounds.</p></section>'+
+      '<div class="row"><button class="btn primary" data-act="go" data-id="points">Go to the points rounds</button></div>';
+  }
+  var h='<section class="tight"><span class="ref">Sec. 4, Subsection 2</span><h2>'+(isR1?'Round one: the whole Membership':'Round two: Members in their first year')+'</h2>'+
+    '<p>'+(isR1?'Call each Candidate in turn. If all '+plural(state.members.length,'Member','Members')+' support the Candidate, they are accepted at once.'
+      :'Call each remaining Candidate. If all '+plural(fy,'first-year Member','first-year Members')+' support the Candidate, they are accepted.')+'</p></section>';
+  var sp=state.sup[round];
+  if(officerKey&&sp&&!sp.closed){
+    var vs=votersOf(sp),inC=Object.keys(sp.ballots).length;
+    h+='<section class="stack"><h3>Private vote open: '+inC+' of '+vs.length+' ballots in</h3>'+intakeHtml(sp)+
+      '<div class="row">'+vs.map(function(m){return '<span class="pill'+(sp.ballots[m.id]?' in':'')+'">'+esc(m.name)+'</span>';}).join('')+'</div>'+
+      '<div class="row"><button class="btn primary" data-act="closeSup" data-id="'+round+'"'+(inC?'':' disabled')+'>Close and reveal the result</button>'+
+      '<span class="muted small">Only unanimous or not unanimous is shown for each Candidate. Individual ballots are erased.'+(sp.pend.length?' '+plural(sp.pend.length,'sealed ballot is','sealed ballots are')+' unassigned and will not count.':'')+'</span></div></section>';
+  }else if(officerKey&&list.length){
+    h+='<div class="row"><button class="btn" data-act="openSup" data-id="'+round+'">'+(sp?'Run the private vote again':'Open a private vote on Members\' phones')+'</button>'+
+      '<span class="muted small">'+(sp&&sp.closed?'Private vote closed with '+plural(sp.count,'ballot','ballots')+'. The results are marked below.':'Or call each Candidate and mark the result by hand below.')+'</span></div>';
+  }
+  if(!list.length){h+='<p class="muted">No Candidates remain in consideration for this round.</p>';}
+  else{
+    h+='<ul class="list">'+list.map(function(c){
+      var v=state[round][c.id];
+      return '<li>'+av(c)+'<span class="name">'+esc(c.name)+'</span>'+(c.status==='accepted'?'<span class="pill in">Accepted</span>':'')+
+        '<span class="seg"><button data-act="unan" data-round="'+round+'" data-id="'+c.id+'" data-v="yes" aria-pressed="'+(v==='yes')+'">Unanimous</button>'+
+        '<button data-act="unan" data-round="'+round+'" data-id="'+c.id+'" data-v="no" aria-pressed="'+(v==='no')+'">Not unanimous</button></span></li>';
+    }).join('')+'</ul>';
+  }
+  if(seats()<0){h+='<div class="note"><p>More Candidates have been accepted than the class size allows. Raise the class size in Setup or change a result here.</p></div>';}
+  var undecided=list.filter(function(c){return !state[round][c.id];}).length;
+  h+='<div class="row"><button class="btn'+(undecided?'':' primary')+'" data-act="go" data-id="'+(isR1&&fy?'r2':'points')+'">'+(isR1&&fy?'Go to round two':'Go to the points rounds')+'</button>'+
+     (undecided?'<span class="muted small">'+plural(undecided,'Candidate','Candidates')+' not yet called.</span>':'')+'</div>';
+  return h;
+}
+
+/* ---------- points rounds ---------- */
+function tallyHtml(r,selectable){
+  var t=totals(r),max=Math.max(1,t.length?t[0].pts:1),s=selectable?seats():0,h='<ol class="tally">';
+  t.forEach(function(x,i){
+    var c=cand(x.id);if(!c)return;
+    var next=t[i+1];
+    var checked=ui.sel.indexOf(x.id)>=0;
+    var box='';
+    if(selectable){box='<input type="checkbox" id="sel-'+x.id+'" data-act="sel" data-id="'+x.id+'"'+(checked?' checked':'')+((!checked&&ui.sel.length>=s)?' disabled':'')+' aria-label="Accept '+esc(c.name)+'">';}
+    else{box='<span class="num muted small">'+(i+1)+'</span>';}
+    var tag=(!selectable&&r.accepted&&r.accepted.indexOf(x.id)>=0)?' <span class="pill in">Accepted</span>':'';
+    h+='<li>'+box+'<label for="sel-'+x.id+'" style="font-size:inherit;color:inherit;display:flex;flex-direction:row;align-items:center;gap:8px;min-width:0;overflow-wrap:anywhere">'+av(c,'sm')+'<span>'+esc(c.name)+tag+'</span></label><span class="pts">'+x.pts+'</span>'+
+       '<span class="bar"><i style="width:'+(x.pts/max*100).toFixed(1)+'%"></i></span>'+
+       (next?'<span class="lead">'+(x.pts===next.pts?'Level with the next Candidate':'Leads the next Candidate by '+(x.pts-next.pts))+'</span>':'')+'</li>';
+    if(selectable&&i===s-1&&next){
+      h+='<li class="mark">'+plural(s,'seat','seats')+' open. '+(x.pts===next.pts?'There is a tie across this mark.':'Candidates above this mark would fill the class.')+'</li>';
+    }
+  });
+  return h+'</ol>';
+}
+function pastRounds(){
+  var done=state.rounds.filter(function(r){return r.decided;});
+  if(!done.length)return '';
+  return '<section class="tight"><h3>Earlier points rounds</h3>'+done.map(function(r){
+    return '<details><summary>Round '+r.n+': '+(r.accepted.length?r.accepted.map(function(id){var c=cand(id);return c?esc(c.name):'';}).join(', ')+' accepted':'no one accepted')+'</summary><div style="padding:12px 0">'+tallyHtml(r,false)+'</div></details>';
+  }).join('')+'</section>';
+}
+function renderBallot(r){
+  var m=member(ui.ballotMember),b=budget(m),cp=cap(m),used=0;
+  r.candIds.forEach(function(id){used+=ui.draft[id]||0;});
+  var left=b-used;
+  var h='<section class="tight"><span class="ref">Private ballot</span><h2>'+esc(m.name)+'</h2>'+
+    '<p>'+(m.year===1?'First year':'Second year')+': '+b+' points to share among the Candidates, with at most '+cp+' on any one.</p></section>'+
+    '<div class="tight"><span class="muted small">Points left</span><span class="budget">'+left+' of '+b+'</span></div>'+
+    '<ul class="list ballot">'+r.candIds.map(function(id){
+      var c=cand(id),v=ui.draft[id]||0;
+      return '<li>'+av(c)+'<span class="name">'+esc(c.name)+'</span><span class="stepper">'+
+        '<button data-act="dec" data-id="'+id+'" aria-label="One point fewer for '+esc(c.name)+'"'+(v<=0?' disabled':'')+'>&minus;</button>'+
+        '<output>'+v+'</output>'+
+        '<button data-act="inc" data-id="'+id+'" aria-label="One more point for '+esc(c.name)+'"'+((v>=cp||left<=0)?' disabled':'')+'>+</button></span></li>';
+    }).join('')+'</ul>'+
+    '<div class="row"><button class="btn primary" data-act="submitBallot">Submit ballot</button><button class="btn quiet" data-act="cancelBallot">Back without voting</button>'+
+    (left>0?'<span class="muted small">'+plural(left,'point','points')+' unused. Unused points are not counted.</span>':'')+'</div>';
+  return h;
+}
+function renderPoints(){
+  var r=openRound(),h='<section class="tight"><span class="ref">Sec. 4, Subsection 3</span><h2>Points rounds</h2></section>';
+  if(!r){
+    var pend=by('pending'),s=seats();
+    if(s<=0){h+='<div class="note row"><p class="grow">The class is full. No further voting is needed.</p><button class="btn primary" data-act="go" data-id="class">See the class</button></div>';}
+    else if(!pend.length){h+='<p>No Candidates remain in consideration, with '+plural(s,'seat','seats')+' still open.</p>';}
+    else if(!state.members.length){h+='<p>Add the Members in Setup before voting.</p>';}
+    else{
+      var n=state.rounds.length+1;
+      h+='<p>'+plural(pend.length,'Candidate remains','Candidates remain')+' for '+plural(s,'open seat','open seats')+'. '+(state.members.some(function(m){return m.year===1;})?'Each Member receives a fresh allotment: 15 points in their first year, 10 in their second, and no more than half on any one Candidate.':'Each Member receives a fresh 10 points, with no more than 5 on any one Candidate.')+'</p>'+
+         '<ul class="list">'+pend.map(function(c){return '<li>'+av(c)+'<span class="name">'+esc(c.name)+'</span></li>';}).join('')+'</ul>'+
+         '<div class="row"><button class="btn primary" data-act="startRound">Open points round '+n+'</button></div>';
+    }
+    var lr=lastRound();
+    if(lr&&lr.decided){h+='<div class="row"><button class="btn quiet" data-act="undoDecision">Reopen the decision on round '+lr.n+'</button></div>';}
+    return h+pastRounds();
+  }
+  if(!r.closed){
+    if(ui.recorded){
+      return '<section class="stack"><h2>Ballot recorded</h2><p>Pass the device to the next Member.</p><div class="row"><button class="btn primary" data-act="nextMember">Next Member</button></div></section>';
+    }
+    if(ui.ballotMember&&member(ui.ballotMember))return renderBallot(r);
+    var inCount=Object.keys(r.ballots).length;
+    h+='<h3>Round '+r.n+': '+inCount+' of '+state.members.length+' ballots in</h3><p class="muted">Totals stay hidden until the Officers close the round.</p>'+intakeHtml(r)+
+      '<p class="muted small">A Member without a phone can tap their name and vote on this device.</p><div class="members">'+state.members.map(function(m){
+        var done=!!r.ballots[m.id];
+        return '<button data-act="openBallot" data-id="'+m.id+'" class="'+(done?'done':'')+'">'+esc(m.name)+'<span>'+(done?'Ballot in':(m.year===1?'First year, 15 points':'Second year, 10 points'))+'</span></button>';
+      }).join('')+'</div>';
+    if(ui.confirm&&ui.confirm.indexOf('clear:')===0){
+      var cm=member(ui.confirm.slice(6));
+      if(cm){h+='<div class="note row"><p class="grow">'+esc(cm.name)+' has already voted. The Officers can discard that ballot so it can be cast again.</p><button class="btn" data-act="clearBallot" data-id="'+cm.id+'">Discard ballot</button><button class="btn quiet" data-act="cancel">Leave it</button></div>';}
+    }
+    var missing=state.members.length-inCount;
+    if(ui.confirm==='close'){
+      h+='<div class="note row"><p class="grow">'+plural(missing,'Member has','Members have')+' not voted.'+(r.pend.length?' '+plural(r.pend.length,'sealed ballot is','sealed ballots are')+' unassigned and will not count.':'')+' Close the round without them?</p><button class="btn primary" data-act="closeRound">Close and show the tally</button><button class="btn quiet" data-act="cancel">Keep voting open</button></div>';
+    }else{
+      h+='<div class="row"><button class="btn'+(missing?'':' primary')+'" data-act="'+(missing?'ask':'closeRound')+'" data-id="close"'+(inCount?'':' disabled')+'>Close voting and show the tally</button></div>';
+    }
+    return h+pastRounds();
+  }
+  var s2=seats();
+  h+='<h3>Round '+r.n+' tally, '+plural(ballotCount(r),'ballot','ballots')+' counted</h3>'+
+     '<p class="muted">Tick the clear leaders to accept them as Members. Whether a lead is clear is for the Officers to judge.</p>'+tallyHtml(r,true)+
+     '<div class="row"><button class="btn primary" data-act="acceptSel">'+(ui.sel.length?'Accept '+plural(ui.sel.length,'Candidate','Candidates'):'Accept no one and vote again')+'</button>'+
+     '<span class="muted small">'+plural(s2,'seat','seats')+' open.</span></div>';
+  return h+pastRounds();
+}
+
+/* ---------- the class ---------- */
+function recordText(){
+  var L=['Membership vote record','Class size: '+state.classSize,''],acc=by('accepted'),pend=by('pending'),v=by('void');
+  L.push('Accepted ('+acc.length+'):');acc.forEach(function(c){L.push('  '+c.name+' ('+viaLabel(c.via)+')');});
+  if(pend.length){L.push('','Not selected or still in consideration ('+pend.length+'):');pend.forEach(function(c){L.push('  '+c.name);});}
+  if(v.length){L.push('','Void under Sec. 5 ('+v.length+'):');v.forEach(function(c){L.push('  '+c.name);});}
+  state.rounds.filter(function(r){return r.closed;}).forEach(function(r){
+    L.push('','Points round '+r.n+' ('+ballotCount(r)+' ballots):');
+    totals(r).forEach(function(x){var c=cand(x.id);if(c)L.push('  '+c.name+': '+x.pts);});
+  });
+  return L.join('\n');
+}
+function renderClass(){
+  var acc=by('accepted'),pend=by('pending'),s=seats();
+  var h='<section class="tight"><span class="ref">Result</span><h2>'+(s<=0?'The class is selected':'The class so far')+'</h2>'+
+    '<p>'+acc.length+' of '+state.classSize+' places filled.'+(s>0&&pend.length?' Voting continues in the points rounds.':'')+'</p></section>';
+  h+=acc.length?'<ul class="list">'+acc.map(function(c){return '<li>'+av(c)+'<span class="name">'+esc(c.name)+'</span><span class="muted small">'+viaLabel(c.via)+'</span></li>';}).join('')+'</ul>':'<p class="muted">No Candidates accepted yet.</p>';
+  if(pend.length){h+='<section class="tight"><h3>'+(s<=0?'Not selected':'Still in consideration')+'</h3><ul class="list">'+pend.map(function(c){return '<li>'+av(c)+'<span class="name">'+esc(c.name)+'</span></li>';}).join('')+'</ul></section>';}
+  h+='<div class="row"><button class="btn primary" data-act="copyRecord">Copy the record</button>'+(ui.copied?'<span class="small">Copied.</span>':'')+
+     (s>0&&pend.length?'<button class="btn" data-act="go" data-id="points">Back to the points rounds</button>':'')+'</div>';
+  if(ui.recordText){h+='<pre class="record" id="record">'+esc(ui.recordText)+'</pre>';}
+  return h;
+}
+
+/* ---------- officers: blackball ---------- */
+function renderOfficers(){
+  var r=openRound();
+  if(r&&!r.closed&&(ui.ballotMember||ui.recorded))return '';
+  var live=by('pending'),v=by('void');
+  if(!live.length&&!v.length)return '';
+  var h='<details class="officers" id="officersBox"'+(ui.officersOpen?' open':'')+'><summary>Officers: Blackball under Sec. 5</summary><div class="stack">'+
+    '<p class="muted small">Record a Blackball declared privately to the Officers before a vote. The Candidate becomes void and leaves consideration. No name or reason is stored here.</p><ul class="list">';
+  live.forEach(function(c){
+    h+='<li>'+av(c,'sm')+'<span class="name">'+esc(c.name)+'</span>';
+    if(ui.confirm==='void:'+c.id){h+='<span class="small">Render this Candidate void?</span><button class="btn" data-act="doVoid" data-id="'+c.id+'">Confirm</button><button class="btn quiet" data-act="cancel">Cancel</button>';}
+    else{h+='<button class="btn quiet" data-act="ask" data-id="void:'+c.id+'">Record a Blackball</button>';}
+    h+='</li>';
+  });
+  v.forEach(function(c){h+='<li><span class="name">'+esc(c.name)+'</span><span class="pill out">Void</span><button class="btn quiet" data-act="restore" data-id="'+c.id+'">Restore</button></li>';});
+  return h+'</ul></div></details>';
+}
+
+/* ---------- Member ballot page ---------- */
+function vBudget(){var y=vui.pc.years===2?vui.year:(vui.pc.years===1?1:2);return y===1?15:10;}
+function saveVoter(){try{localStorage.setItem(VKEY,JSON.stringify({name:vui.name,year:vui.year,sentFor:vui.sentFor}));}catch(e){}}
+function renderVoter(){
+  if(!CR)return '<section class="tight"><h2>This browser cannot seal a ballot</h2><p>Open the link in an up to date browser, or vote on the Officers\' device.</p></section>';
+  var errp=vui.err?'<p class="small">'+esc(vui.err)+'</p>':'';
+  if(!vui.nameSet){
+    return '<section class="tight"><span class="ref">Private ballot</span><h2>Who is voting?</h2><p>Enter your full name. The ballot is sealed on this phone. Only the Officers\' tally can open it, and it shows totals, never an individual ballot.</p></section>'+
+      '<div class="row"><label class="grow">Full name<input type="text" id="vName" autocomplete="name" value="'+esc(vui.name)+'"></label><button class="btn primary" data-act="vName" style="align-self:flex-end">Continue</button></div>'+errp;
+  }
+  var who='<div class="row"><span class="small muted">Voting as '+esc(vui.name)+'.</span><button class="btn quiet" data-act="vRename">Change name</button></div>';
+  if(vui.sent){
+    return '<section class="tight"><span class="ref">Private ballot</span><h2>Ballot sent</h2><p>The Officers have the sealed ballot. It can be changed until they close the vote. The next vote will appear here by itself.</p></section>'+who+
+      '<div class="row"><button class="btn" data-act="vEdit">Change my ballot</button></div>';
+  }
+  if(vui.sealed){
+    return '<section class="tight"><span class="ref">Private ballot</span><h2>Ballot sealed, not yet sent</h2><p>The ballot could not be sent from this phone. Try again, or send this code to the Officers by message. It opens only with the Officers\' key.</p></section>'+
+      '<textarea id="sealedOut" class="sealed" rows="5" readonly>'+esc(vui.sealed)+'</textarea>'+
+      '<div class="row"><button class="btn primary" data-act="vSeal">Try sending again</button><button class="btn" data-act="vCopy">Copy the code</button>'+(vui.copied?'<span class="small">Copied.</span>':'')+
+      '<button class="btn quiet" data-act="vEdit">Change my ballot</button></div>';
+  }
+  if(vui.pc){
+    var pc=vui.pc,isPts=pc.type===2,back=vui.manual?'<button class="btn quiet" data-act="vReset">Back</button>':'';
+    var h='<section class="tight"><span class="ref">Private ballot</span><h2>'+(isPts?'Points round '+pc.n:(pc.type===1?'Round two: first-year Members':'Round one: the whole Membership'))+'</h2></section>'+who;
+    if(isPts){
+      if(pc.years===2){
+        h+='<div class="row"><span class="small muted">I am in my</span><span class="seg"><button data-act="vYear" data-id="1" aria-pressed="'+(vui.year===1)+'">First year, 15 points</button><button data-act="vYear" data-id="2" aria-pressed="'+(vui.year===2)+'">Second year, 10 points</button></span></div>';
+      }
+      var b=vBudget(),cp=Math.floor(b/2),used=0;pc.idx.forEach(function(i){used+=vui.draft[i]||0;});var left=b-used;
+      h+='<div class="tight"><span class="muted small">Points left, with at most '+cp+' on any one Candidate</span><span class="budget">'+left+' of '+b+'</span></div>'+
+        '<ul class="list ballot">'+pc.idx.map(function(i){
+          var c={name:BAKED[i][1],photo:BAKED[i][0]},v=vui.draft[i]||0;
+          return '<li>'+av(c)+'<span class="name">'+esc(c.name)+'</span><span class="stepper">'+
+            '<button data-act="vDec" data-id="'+i+'" aria-label="One point fewer for '+esc(c.name)+'"'+(v<=0?' disabled':'')+'>&minus;</button><output>'+v+'</output>'+
+            '<button data-act="vInc" data-id="'+i+'" aria-label="One more point for '+esc(c.name)+'"'+((v>=cp||left<=0)?' disabled':'')+'>+</button></span></li>';
+        }).join('')+'</ul>'+
+        '<div class="row"><button class="btn primary" data-act="vSeal">Send my ballot</button>'+back+
+        (left>0?'<span class="muted small">'+plural(left,'point','points')+' unused. Unused points are not counted.</span>':'')+'</div>';
+    }else{
+      var all=pc.idx.every(function(i){return vui.draft[i]===0||vui.draft[i]===1;});
+      h+='<p class="muted">A Candidate is accepted in this round only if every ballot supports them.</p><ul class="list">'+pc.idx.map(function(i){
+          var c={name:BAKED[i][1],photo:BAKED[i][0]},v=vui.draft[i];
+          return '<li>'+av(c)+'<span class="name">'+esc(c.name)+'</span><span class="seg"><button data-act="vSup" data-id="'+i+'" data-v="1" aria-pressed="'+(v===1)+'">Support</button>'+
+            '<button data-act="vSup" data-id="'+i+'" data-v="0" aria-pressed="'+(v===0)+'">Do not support</button></span></li>';
+        }).join('')+'</ul>'+
+        '<div class="row"><button class="btn primary" data-act="vSeal"'+(all?'':' disabled')+'>Send my ballot</button>'+back+
+        (all?'':'<span class="muted small">Answer for every Candidate first.</span>')+'</div>';
+    }
+    return h+errp;
+  }
+  return '<section class="tight"><span class="ref">Private ballot</span><h2>No vote is open right now</h2><p>Keep this page open. The ballot appears here when the Officers open a vote.</p></section>'+who+
+    '<p class="muted small">'+(relay.ok?'Connected.':'Connecting. If nothing appears once a vote is open, check the signal or enter the round code by hand.')+'</p>'+
+    (vui.manualOpen?'<div class="row"><label>Round code<input type="text" id="vCode" autocomplete="off" autocapitalize="characters" spellcheck="false" value="'+esc(vui.code)+'" style="width:150px"></label><button class="btn" data-act="vOpen" style="align-self:flex-end">Open the ballot</button></div>'
+      :'<div class="row"><button class="btn quiet" data-act="vManual">Enter a round code by hand</button></div>')+errp;
+}
+function renderUnlock(){
+  return '<section class="tight"><span class="ref">Officers</span><h2>Unlock the console</h2><p>Paste the Officers\' key. It stays on this device and is what opens sealed ballots.</p></section>'+
+    '<div class="row"><label class="grow">Officers\' key<input type="text" id="okey" autocomplete="off" spellcheck="false"></label><button class="btn primary" data-act="unlock" style="align-self:flex-end">Unlock</button>'+
+    '<button class="btn quiet" data-act="toVoter" style="align-self:flex-end">Back</button></div>'+(ui.unlockErr?'<p class="small">'+esc(ui.unlockErr)+'</p>':'');
+}
+async function tryUnlock(d){
+  d=String(d||'').trim();ui.unlockErr=null;
+  try{var t=await openText(await sealText('ok'),d);if(t!=='ok')throw 0;officerKey=d;try{localStorage.setItem(OKEY,d);}catch(e){}ui.mode='console';}
+  catch(e){ui.unlockErr='That key does not open ballots. Check that the whole key was pasted.';}
+  render();
+}
+async function doSeal(){
+  var pc=vui.pc,v=pc.idx.map(function(i){return vui.draft[i]||0;});
+  var code;vui.err=null;
+  try{code=await sealText(JSON.stringify({r:pc.code,n:vui.name,v:v,t:Date.now()}));}
+  catch(e){vui.err='The ballot could not be sealed on this browser. Vote on the Officers\' device instead.';render();return;}
+  try{await relayPost(code);vui.sent=true;vui.sealed=null;vui.sentFor=pc.code;saveVoter();}
+  catch(e){vui.sealed=code;vui.copied=false;}
+  render();
+}
+function render(){
+  var con=ui.mode==='console';
+  document.getElementById('status').hidden=!con;document.getElementById('steps').hidden=!con;
+  if(!con){
+    document.getElementById('main').innerHTML=ui.mode==='unlock'?renderUnlock():renderVoter();
+    document.getElementById('officers').innerHTML=ui.mode==='unlock'?'':'<div class="row"><button class="btn quiet" data-act="toConsole">'+(officerKey?'Back to the Officers\' console':'Officers\' console')+'</button></div>';
+    return;
+  }
+  renderHeader();
+  var m=document.getElementById('main'),s=state.step;
+  m.innerHTML=s==='setup'?renderSetup():s==='letters'?renderLetters():s==='r1'?renderUnan('r1'):s==='r2'?renderUnan('r2'):s==='points'?renderPoints():renderClass();
+  var r0=openRound(),hide=r0&&!r0.closed&&(ui.ballotMember||ui.recorded);
+  document.getElementById('officers').innerHTML=(hide||!CR?'':'<div class="row"><button class="btn quiet" data-act="toVoter">Cast my own ballot on the Member page</button></div>')+renderOfficers();
+}
+function commit(){if(officerKey||ui.mode==='console'){announce();save();}render();}
+
+/* ---------- timer ---------- */
+function stopTimer(){if(timer.handle){clearInterval(timer.handle);timer.handle=null;}timer.running=false;}
+function resetTimer(){stopTimer();timer.left=state.limitMin*60;}
+function tick(){
+  timer.left-=1;var el=document.getElementById('clock');
+  if(timer.left<=0){timer.left=0;stopTimer();if(state.step==='letters')render();return;}
+  if(el)el.textContent=clockText();
+}
+
+/* ---------- actions ---------- */
+var A={
+  toVoter:function(){ui.mode='voter';},
+  toConsole:function(){ui.mode=(officerKey||!CR)?'console':'unlock';ui.unlockErr=null;},
+  unlock:function(){tryUnlock(document.getElementById('okey').value);},
+  vName:function(){
+    var n=document.getElementById('vName').value.trim();vui.name=n;
+    if(n.split(/\s+/).length<2){vui.err='Enter your first and last name so the ballot can be matched to a Member.';return;}
+    vui.err=null;vui.nameSet=true;saveVoter();
+  },
+  vRename:function(){vui.nameSet=false;vui.err=null;},
+  vManual:function(){vui.manualOpen=true;vui.err=null;},
+  vOpen:function(){
+    var c=document.getElementById('vCode').value;vui.code=c;
+    var pc=parseCode(c);if(!pc){vui.err='That round code is not valid. Check it with the Officers.';return;}
+    vui.err=null;vui.pc=pc;vui.manual=true;vui.draft={};vui.sealed=null;vui.sent=false;
+  },
+  vYear:function(id){vui.year=+id===1?1:2;vui.draft={};saveVoter();},
+  vInc:function(id){var b=vBudget(),cp=Math.floor(b/2),used=0;vui.pc.idx.forEach(function(i){used+=vui.draft[i]||0;});var v=vui.draft[id]||0;if(v<cp&&used<b)vui.draft[id]=v+1;},
+  vDec:function(id){var v=vui.draft[id]||0;if(v>0)vui.draft[id]=v-1;},
+  vSup:function(id,el){vui.draft[id]=+el.getAttribute('data-v');},
+  vSeal:function(){var pc=vui.pc;if(!pc)return;if(pc.type!==2&&!pc.idx.every(function(i){return vui.draft[i]===0||vui.draft[i]===1;}))return;doSeal();},
+  vEdit:function(){vui.sealed=null;vui.sent=false;},
+  vReset:function(){vui.pc=null;vui.manual=false;vui.manualOpen=false;vui.sealed=null;vui.sent=false;vui.draft={};vui.code='';vui.err=null;voterSync();},
+  vCopy:function(){
+    var t=vui.sealed,ta=document.getElementById('sealedOut');
+    try{navigator.clipboard.writeText(t).then(function(){vui.copied=true;render();},function(){var x=document.getElementById('sealedOut');if(x){x.focus();x.select();}});}catch(e){if(ta){ta.focus();ta.select();}}
+  },
+  intake:function(){var p=activePoll(),ta=document.getElementById('intake');if(p&&ta)runIntake(p,ta.value);},
+  exportSetup:function(){
+    var t='TRCSETUP.'+b64u(new TextEncoder().encode(JSON.stringify({classSize:state.classSize,members:state.members,candidates:state.candidates.map(function(c){return {id:c.id,name:c.name,photo:c.photo||null,proposer:c.proposer,second:c.second};})})));
+    ui.setupText=t;ui.setupCopied=false;
+    try{navigator.clipboard.writeText(t).then(function(){ui.setupCopied=true;render();},function(){});}catch(e){}
+  },
+  importSetup:function(){
+    var m=/TRCSETUP\.([A-Za-z0-9_-]+)/.exec(document.getElementById('setupIn').value||'');ui.setupErr=null;
+    try{
+      var o=JSON.parse(new TextDecoder().decode(unb64u(m[1])));if(!Array.isArray(o.members)||!Array.isArray(o.candidates))throw 0;
+      var po=state.posted;state=blank();state.posted=po;state.classSize=Math.min(99,Math.max(1,+o.classSize||4));
+      state.members=o.members.map(function(x){return {id:String(x.id||uid()),name:String(x.name||''),year:x.year===1?1:2};});
+      state.candidates=o.candidates.map(function(x){return {id:String(x.id||uid()),name:String(x.name||''),photo:x.photo||undefined,proposer:String(x.proposer||''),second:String(x.second||''),status:'pending',via:null,heard:false};});
+      ui.setupText=null;
+    }catch(e){ui.setupErr='That is not a setup copied from this app.';}
+  },
+  assign:function(id){
+    var p=activePoll();if(!p)return;var x=p.pend.filter(function(q){return q.id===id;})[0],sel=document.getElementById('assign-'+id),m=sel&&member(sel.value);
+    if(!x||!m)return;
+    if(!checkVotes(p,x.map,m)){ui.intakeMsg='That ballot uses more points than '+m.name+' is allotted, so it was not assigned.';return;}
+    p.ballots[m.id]=x.map;p.ts[m.id]=x.t;p.pend=p.pend.filter(function(q){return q.id!==id;});ui.intakeMsg=null;
+  },
+  dropPend:function(id){var p=activePoll();if(p)p.pend=p.pend.filter(function(q){return q.id!==id;});},
+  openSup:function(round){
+    var p={type:round,n:0,candIds:by('pending').map(function(c){return c.id;}),ballots:{},ts:{},pend:[],codes:[],closed:false,count:0};
+    newCode(p);state.sup[round]=p;ui.intakeMsg=null;
+  },
+  closeSup:function(round){
+    var p=state.sup[round];if(!p||p.closed)return;var mids=Object.keys(p.ballots);if(!mids.length)return;
+    p.candIds.forEach(function(cid){var c=cand(cid);if(!c||c.status!=='pending')return;
+      setUnan(round,cid,mids.every(function(mid){return p.ballots[mid][cid]===1;})?'yes':'no');});
+    p.count=mids.length;p.ballots={};p.ts={};p.pend=[];p.closed=true;ui.intakeMsg=null;
+  },
+  go:function(id){state.step=id;ui.intakeMsg=null;ui.confirm=null;ui.copied=false;ui.recordText=null;if(id!=='letters')stopTimer();},
+  ask:function(id){ui.confirm=id;},
+  cancel:function(){ui.confirm=null;},
+  dismissNote:function(){state.example=false;},
+  doReset:function(){var po=state.posted;state=blank();state.posted=po;ui.confirm=null;resetTimer();},
+  addMembers:function(){
+    var ta=document.getElementById('newMembers'),yr=+document.getElementById('newYear').value;
+    ta.value.split(/\n|,/).map(function(s){return s.trim();}).filter(Boolean).forEach(function(n){state.members.push({id:uid(),name:n,year:yr});});
+  },
+  rmMember:function(id){
+    state.members=state.members.filter(function(m){return m.id!==id;});
+    state.rounds.forEach(function(r){delete r.ballots[id];});
+  },
+  addCandidate:function(){
+    var n=document.getElementById('newCand').value.trim();if(!n)return;
+    var c={id:uid(),name:n,proposer:document.getElementById('newProposer').value.trim(),second:document.getElementById('newSecond').value.trim(),status:'pending',via:null,heard:false};
+    state.candidates.push(c);var r=openRound();if(r&&!r.closed)r.candIds.push(c.id);
+  },
+  rmCandidate:function(id){
+    state.candidates=state.candidates.filter(function(c){return c.id!==id;});
+    delete state.r1[id];delete state.r2[id];
+    state.rounds.forEach(function(r){r.candIds=r.candIds.filter(function(x){return x!==id;});r.accepted=(r.accepted||[]).filter(function(x){return x!==id;});Object.keys(r.ballots).forEach(function(m){delete r.ballots[m][id];});});
+  },
+  pickLetter:function(id){ui.lettersCand=id;resetTimer();},
+  timerToggle:function(){
+    if(timer.running){stopTimer();}
+    else{if(timer.left<=0)timer.left=state.limitMin*60;timer.running=true;timer.handle=setInterval(tick,1000);}
+  },
+  timerReset:function(){resetTimer();},
+  heard:function(id){
+    var c=cand(id);c.heard=true;
+    var list=state.candidates.filter(function(x){return x.status!=='void';});
+    var nxt=list.filter(function(x){return !x.heard;})[0];
+    if(nxt){ui.lettersCand=nxt.id;resetTimer();}
+  },
+  unan:function(id,el){
+    setUnan(el.getAttribute('data-round'),id,el.getAttribute('data-v'));
+  },
+  doVoid:function(id){
+    var c=cand(id);c.status='void';c.via=null;delete state.r1[id];delete state.r2[id];ui.confirm=null;
+    var r=openRound();
+    if(r){r.candIds=r.candIds.filter(function(x){return x!==id;});Object.keys(r.ballots).forEach(function(m){delete r.ballots[m][id];});ui.sel=ui.sel.filter(function(x){return x!==id;});if(!r.closed)newCode(r);}
+    ['r1','r2'].forEach(function(k){var p=state.sup[k];if(p&&!p.closed){p.candIds=p.candIds.filter(function(x){return x!==id;});Object.keys(p.ballots).forEach(function(m){delete p.ballots[m][id];});newCode(p);}});
+  },
+  restore:function(id){var c=cand(id);c.status='pending';var r=openRound();if(r&&!r.closed&&r.candIds.indexOf(id)<0){r.candIds.push(id);newCode(r);}},
+  startRound:function(){
+    var nr={type:'points',n:state.rounds.length+1,candIds:by('pending').map(function(c){return c.id;}),ballots:{},ts:{},pend:[],codes:[],closed:false,decided:false,accepted:[]};
+    newCode(nr);state.rounds.push(nr);ui.intakeMsg=null;
+    ui.sel=[];ui.ballotMember=null;ui.recorded=false;
+  },
+  openBallot:function(id){
+    var r=openRound();if(!r)return;
+    if(r.ballots[id]){ui.confirm='clear:'+id;return;}
+    ui.confirm=null;ui.ballotMember=id;ui.draft={};
+  },
+  clearBallot:function(id){var r=openRound();if(r)delete r.ballots[id];ui.confirm=null;},
+  inc:function(id){
+    var r=openRound(),m=member(ui.ballotMember),used=0;r.candIds.forEach(function(x){used+=ui.draft[x]||0;});
+    var v=ui.draft[id]||0;if(v<cap(m)&&used<budget(m))ui.draft[id]=v+1;
+  },
+  dec:function(id){var v=ui.draft[id]||0;if(v>0)ui.draft[id]=v-1;},
+  submitBallot:function(){
+    var r=openRound(),b={};r.candIds.forEach(function(id){if(ui.draft[id])b[id]=ui.draft[id];});
+    r.ballots[ui.ballotMember]=b;ui.ballotMember=null;ui.draft={};ui.recorded=true;
+  },
+  cancelBallot:function(){ui.ballotMember=null;ui.draft={};},
+  nextMember:function(){ui.recorded=false;},
+  closeRound:function(){
+    var r=openRound(),t={};r.candIds.forEach(function(id){t[id]=0;});
+    Object.keys(r.ballots).forEach(function(mid){var b=r.ballots[mid];Object.keys(b).forEach(function(cid){if(cid in t)t[cid]+=b[cid];});});
+    r.totals=t;r.count=Object.keys(r.ballots).length;r.ballots={};r.ts={};r.pend=[];r.closed=true;ui.confirm=null;ui.sel=[];ui.intakeMsg=null;
+  },
+  sel:function(id){
+    var i=ui.sel.indexOf(id);
+    if(i>=0)ui.sel.splice(i,1);else if(ui.sel.length<seats())ui.sel.push(id);
+  },
+  acceptSel:function(){
+    var r=openRound();if(!r||!r.closed)return;
+    ui.sel.forEach(function(id){var c=cand(id);if(c&&c.status==='pending'){c.status='accepted';c.via='p'+r.n;}});
+    r.accepted=ui.sel.slice();r.decided=true;ui.sel=[];
+    if(seats()<=0)state.step='class';
+  },
+  undoDecision:function(){
+    var r=lastRound();if(!r||!r.decided)return;
+    r.accepted.forEach(function(id){var c=cand(id);if(c&&c.via==='p'+r.n){c.status='pending';c.via=null;}});
+    ui.sel=[];r.accepted=[];r.decided=false;
+  },
+  copyRecord:function(){
+    var t=recordText();ui.recordText=t;ui.copied=false;
+    try{navigator.clipboard.writeText(t).then(function(){ui.copied=true;render();},function(){});}catch(e){}
+  }
+};
+
+document.addEventListener('click',function(e){
+  var el=e.target.closest('[data-act]');if(!el||el.tagName==='INPUT')return;
+  var act=el.getAttribute('data-act');if(!A[act])return;
+  A[act](el.getAttribute('data-id'),el);commit();
+});
+document.addEventListener('change',function(e){
+  var t=e.target;
+  if(t.getAttribute('data-act')==='sel'){A.sel(t.getAttribute('data-id'));commit();return;}
+  if(t.id==='classSize'){var n=Math.round(+t.value);state.classSize=Math.min(99,Math.max(1,n||1));commit();}
+  if(t.id==='limitMin'){var k=Math.round(+t.value);state.limitMin=Math.min(60,Math.max(1,k||1));resetTimer();commit();}
+});
+document.addEventListener('keydown',function(e){
+  if(e.key==='Enter'&&e.target.id==='vName'){e.preventDefault();A.vName();commit();return;}
+  if(e.key==='Enter'&&e.target.id==='vCode'){e.preventDefault();A.vOpen();commit();return;}
+  if(e.key==='Enter'&&e.target.id==='okey'){e.preventDefault();A.unlock();return;}
+  if(e.key==='Enter'&&e.target.id==='newCand'){e.preventDefault();A.addCandidate();commit();var f=document.getElementById('newCand');if(f)f.focus();}
+});
+document.addEventListener('input',function(e){if(e.target.id==='vName')vui.name=e.target.value;if(e.target.id==='vCode')vui.code=e.target.value;});
+document.addEventListener('toggle',function(e){if(e.target.id==='officersBox')ui.officersOpen=e.target.open;},true);
+
+render();
+relayStart();
+})();
+</script>
+
+</body>
+</html>
