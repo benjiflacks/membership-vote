@@ -233,7 +233,7 @@ function announce(){
 
 
 function example(){
-  var m=['Teagan Atwood','Olsi Bandula','Alex Bilay','Jordan Harris','Joe Nomellini','Tyler Patterson','Chris Rothe','Daniel Shlayen','JD Smeallie','Dan Swensen']
+  var m=['Teagan Atwood','Olsi Bandula','Alex Bilay','Jordan Harris','Joe Nomellini','Tyler Patterson','Chris Rothe','Daniel Shlayen','JD Smeallie','Dan Swensen','Rafael Ramirez','Amos Jackson III','Benji Flacks']
     .map(function(n){return {id:uid(),name:n,year:2};});
   var c=[['John Brewer','brewer','Tyler Patterson','Jordan Harris'],
          ['Chris Brown','brown','Teagan Atwood','Tyler Patterson and Olsi Bandula'],
@@ -244,7 +244,7 @@ function example(){
          ['Scott Miller','miller','SO2 Alex Bilay',''],
          ['LT Casey Cowan','cowan','Capt. Rafael Ramirez','SSG Chris Rothe and Mr. Jackson III']]
     .map(function(x){return {id:uid(),name:x[0],photo:x[1],proposer:x[2],second:x[3],status:'pending',via:null,heard:false};});
-  return {example:true,classSize:4,limitMin:5,members:m,candidates:c,r1:{},r2:{},sup:{},rounds:[],step:'setup',bakedSeen:BAKED.map(function(b){return b[0];})};
+  return {example:true,classSize:5,limitMin:5,members:m,candidates:c,r1:{},r2:{},sup:{},rounds:[],step:'setup',fix1:true,bakedSeen:BAKED.map(function(b){return b[0];})};
 }
 function blank(){return {example:false,classSize:4,limitMin:5,members:[],candidates:[],r1:{},r2:{},sup:{},rounds:[],step:'setup'};}
 
@@ -269,6 +269,22 @@ function migrate(){
     r.type='points';if(!r.codes)r.codes=[];if(!r.pend)r.pend=[];if(!r.ts)r.ts={};if(!r.ballots)r.ballots={};
     if(!r.closed&&!r.code)newCode(r);
   });
+  if(!state.fix1){
+    state.fix1=true;
+    if(state.classSize===4)state.classSize=5;
+    ['Rafael Ramirez','Amos Jackson III','Benji Flacks'].forEach(function(n){
+      if(!matchMember(n,state.members))state.members.push({id:uid(),name:n,year:2});
+    });
+    var polls=[];['r1','r2'].forEach(function(k){var q=state.sup[k];if(q&&!q.closed)polls.push(q);});
+    var l0=state.rounds[state.rounds.length-1];if(l0&&!l0.closed)polls.push(l0);
+    polls.forEach(function(q){
+      q.pend=(q.pend||[]).filter(function(x){
+        var m=matchMember(x.name,state.members);if(!m||(q.type==='r2'&&m.year!==1))return true;
+        if(!q.ballots[m.id]||(q.ts[m.id]||0)<x.t){q.ballots[m.id]=x.map;q.ts[m.id]=x.t;}
+        return false;
+      });
+    });
+  }
   var open=[];['r1','r2'].forEach(function(k){var p=state.sup[k];if(p&&!p.closed)open.push(p);});
   var lr=state.rounds[state.rounds.length-1];if(lr&&!lr.closed)open.push(lr);
   open.forEach(function(p){
