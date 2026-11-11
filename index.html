@@ -233,7 +233,7 @@ function announce(){
 
 
 function example(){
-  var m=['Teagan Atwood','Olsi Bandula','Alex Bilay','Jordan Harris','Joe Nomellini','Tyler Patterson','Chris Rothe','Daniel Shlayen','JD Smeallie','Dan Swensen','Rafael Ramirez','Amos Jackson III','Benji Flacks']
+  var m=['Teagan Atwood','Olsi Bandula','Alex Bilay','Jordan Harris','Joe Nomellini','Tyler Patterson','Chris Rothe','Daniel Shlayen','JD Smeallie','Dan Swensen','Rafael Ramirez','Amos Jackson III','Benji Flacks','Owen Mann','Abe Jun']
     .map(function(n){return {id:uid(),name:n,year:2};});
   var c=[['John Brewer','brewer','Tyler Patterson','Jordan Harris'],
          ['Chris Brown','brown','Teagan Atwood','Tyler Patterson and Olsi Bandula'],
@@ -244,7 +244,7 @@ function example(){
          ['Scott Miller','miller','SO2 Alex Bilay',''],
          ['LT Casey Cowan','cowan','Capt. Rafael Ramirez','SSG Chris Rothe and Mr. Jackson III']]
     .map(function(x){return {id:uid(),name:x[0],photo:x[1],proposer:x[2],second:x[3],status:'pending',via:null,heard:false};});
-  return {example:true,classSize:5,limitMin:5,members:m,candidates:c,r1:{},r2:{},sup:{},rounds:[],step:'setup',fix1:true,bakedSeen:BAKED.map(function(b){return b[0];})};
+  return {example:true,classSize:5,limitMin:5,members:m,candidates:c,r1:{},r2:{},sup:{},rounds:[],step:'setup',fix1:true,fix2:true,bakedSeen:BAKED.map(function(b){return b[0];})};
 }
 function blank(){return {example:false,classSize:4,limitMin:5,members:[],candidates:[],r1:{},r2:{},sup:{},rounds:[],step:'setup'};}
 
@@ -269,10 +269,10 @@ function migrate(){
     r.type='points';if(!r.codes)r.codes=[];if(!r.pend)r.pend=[];if(!r.ts)r.ts={};if(!r.ballots)r.ballots={};
     if(!r.closed&&!r.code)newCode(r);
   });
-  if(!state.fix1){
-    state.fix1=true;
-    if(state.classSize===4)state.classSize=5;
-    ['Rafael Ramirez','Amos Jackson III','Benji Flacks'].forEach(function(n){
+  if(!state.fix2){
+    if(!state.fix1&&state.classSize===4)state.classSize=5;
+    state.fix1=true;state.fix2=true;
+    ['Rafael Ramirez','Amos Jackson III','Benji Flacks','Owen Mann','Abe Jun'].forEach(function(n){
       if(!matchMember(n,state.members))state.members.push({id:uid(),name:n,year:2});
     });
     var polls=[];['r1','r2'].forEach(function(k){var q=state.sup[k];if(q&&!q.closed)polls.push(q);});
