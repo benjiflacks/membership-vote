@@ -309,7 +309,8 @@ function av(c,cls){
 function by(status){return state.candidates.filter(function(c){return c.status===status;});}
 function seats(){return state.classSize-by('accepted').length;}
 function budget(m){return m.year===1?15:10;}
-function cap(m){return Math.floor(budget(m)/2);}
+function capFor(b){return b===10?6:capFor(b);}
+function cap(m){return capFor(budget(m));}
 function lastRound(){return state.rounds[state.rounds.length-1]||null;}
 function openRound(){var r=lastRound();return r&&!r.decided?r:null;}
 function viaLabel(v){
@@ -588,7 +589,7 @@ function renderPoints(){
     else if(!state.members.length){h+='<p>Add the Members in Setup before voting.</p>';}
     else{
       var n=state.rounds.length+1;
-      h+='<p>'+plural(pend.length,'Candidate remains','Candidates remain')+' for '+plural(s,'open seat','open seats')+'. '+(state.members.some(function(m){return m.year===1;})?'Each Member receives a fresh allotment: 15 points in their first year, 10 in their second, and no more than half on any one Candidate.':'Each Member receives a fresh 10 points, with no more than 5 on any one Candidate.')+'</p>'+
+      h+='<p>'+plural(pend.length,'Candidate remains','Candidates remain')+' for '+plural(s,'open seat','open seats')+'. '+(state.members.some(function(m){return m.year===1;})?'Each Member receives a fresh allotment: 15 points in their first year with at most 7 on any one Candidate, 10 in their second with at most 6.':'Each Member receives a fresh 10 points, with at most 6 on any one Candidate.')+'</p>'+
          '<ul class="list">'+pend.map(function(c){return '<li>'+av(c)+'<span class="name">'+esc(c.name)+'</span></li>';}).join('')+'</ul>'+
          '<div class="row"><button class="btn primary" data-act="startRound">Open points round '+n+'</button></div>';
     }
@@ -714,7 +715,7 @@ function renderVoter(){
       if(pc.years===2){
         h+='<div class="row"><span class="small muted">I am in my</span><span class="seg"><button data-act="vYear" data-id="1" aria-pressed="'+(vui.year===1)+'">First year, 15 points</button><button data-act="vYear" data-id="2" aria-pressed="'+(vui.year===2)+'">Second year, 10 points</button></span></div>';
       }
-      var b=vBudget(),cp=Math.floor(b/2),used=0;pc.idx.forEach(function(i){used+=vui.draft[i]||0;});var left=b-used;
+      var b=vBudget(),cp=capFor(b),used=0;pc.idx.forEach(function(i){used+=vui.draft[i]||0;});var left=b-used;
       h+='<p class="muted small">Tap a name to read the letter.</p><div class="tight"><span class="muted small">Points left, with at most '+cp+' on any one Candidate</span><span class="budget">'+left+' of '+b+'</span></div>'+
         '<ul class="list ballot">'+pc.idx.map(function(i){
           var c={name:BAKED[i][1],photo:BAKED[i][0]},v=vui.draft[i]||0;
@@ -810,7 +811,7 @@ var A={
     vui.err=null;vui.pc=pc;vui.manual=true;vui.draft={};vui.sealed=null;vui.sent=false;
   },
   vYear:function(id){vui.year=+id===1?1:2;vui.draft={};saveVoter();},
-  vInc:function(id){var b=vBudget(),cp=Math.floor(b/2),used=0;vui.pc.idx.forEach(function(i){used+=vui.draft[i]||0;});var v=vui.draft[id]||0;if(v<cp&&used<b)vui.draft[id]=v+1;},
+  vInc:function(id){var b=vBudget(),cp=capFor(b),used=0;vui.pc.idx.forEach(function(i){used+=vui.draft[i]||0;});var v=vui.draft[id]||0;if(v<cp&&used<b)vui.draft[id]=v+1;},
   vDec:function(id){var v=vui.draft[id]||0;if(v>0)vui.draft[id]=v-1;},
   vSup:function(id,el){vui.draft[id]=+el.getAttribute('data-v');},
   vSeal:function(){var pc=vui.pc;if(!pc)return;if(pc.type!==2&&!pc.idx.every(function(i){return vui.draft[i]===0||vui.draft[i]===1;}))return;doSeal();},
