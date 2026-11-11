@@ -269,6 +269,15 @@ function migrate(){
     r.type='points';if(!r.codes)r.codes=[];if(!r.pend)r.pend=[];if(!r.ts)r.ts={};if(!r.ballots)r.ballots={};
     if(!r.closed&&!r.code)newCode(r);
   });
+  var open=[];['r1','r2'].forEach(function(k){var p=state.sup[k];if(p&&!p.closed)open.push(p);});
+  var lr=state.rounds[state.rounds.length-1];if(lr&&!lr.closed)open.push(lr);
+  open.forEach(function(p){
+    var miss=state.candidates.filter(function(c){return c.status==='pending'&&p.candIds.indexOf(c.id)<0;});
+    if(!miss.length)return;
+    miss.forEach(function(c){p.candIds.push(c.id);});
+    var had=Object.keys(p.ballots||{}).length;p.ballots={};p.ts={};p.pend=[];p.codes=[];newCode(p);
+    ui.intakeMsg=miss.map(function(c){return c.name;}).join(', ')+' was added to the open vote.'+(had?' The '+had+' ballots already in were cleared, so Members need to vote again.':'');
+  });
 }
 migrate();
 var timer={left:state.limitMin*60,running:false,handle:null};
@@ -485,7 +494,9 @@ function renderUnan(round){
     var vs=votersOf(sp),inC=Object.keys(sp.ballots).length;
     h+='<section class="stack"><h3>Private vote open: '+inC+' of '+vs.length+' ballots in</h3>'+intakeHtml(sp)+
       '<div class="row">'+vs.map(function(m){return '<span class="pill'+(sp.ballots[m.id]?' in':'')+'">'+esc(m.name)+'</span>';}).join('')+'</div>'+
+      '<p class="small">On this ballot: '+sp.candIds.map(function(id){var c=cand(id);return c?esc(c.name):'';}).join(', ')+'.</p>'+
       '<div class="row"><button class="btn primary" data-act="closeSup" data-id="'+round+'"'+(inC?'':' disabled')+'>Close and reveal the result</button>'+
+      '<button class="btn quiet" data-act="openSup" data-id="'+round+'">Restart this vote with every Candidate in consideration</button>'+
       '<span class="muted small">Only unanimous or not unanimous is shown for each Candidate. Individual ballots are erased.'+(sp.pend.length?' '+plural(sp.pend.length,'sealed ballot is','sealed ballots are')+' unassigned and will not count.':'')+'</span></div></section>';
   }else if(officerKey&&list.length){
     h+='<div class="row"><button class="btn" data-act="openSup" data-id="'+round+'">'+(sp?'Run the private vote again':'Open a private vote on Members\' phones')+'</button>'+
@@ -941,6 +952,7 @@ document.addEventListener('toggle',function(e){if(e.target.id==='officersBox')ui
 
 render();
 relayStart();
+if(officerKey){announce();save();}
 })();
 </script>
 
